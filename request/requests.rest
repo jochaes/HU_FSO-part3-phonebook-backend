@@ -1,0 +1,13 @@
+GET http://localhost:3001/api/persons
+
+###
+POST http://localhost:3001/api/persons
+Content-Type: application/json
+
+{
+  "content": "VS Code rest is a pretty handy tool",
+  "important": true
+}
+
+###
+DELETE http://localhost:3001/api/persons/2
