@@ -34,6 +34,17 @@ app.get('/',
   }
 )
 
+app.get('/info', (request, response)=>{
+  console.log("Get Info");
+  const len = data.length
+  const info = `Phonebook has info for ${len} people`
+  const date = new Date()
+  const resStr = `<div><p>${info}</p><p>${date}</p></div>`
+
+  response.send(resStr)
+  
+})
+
 app.get('/api/persons', (request, response)=>{
   console.log("Get all persons");
   response.send(data)
