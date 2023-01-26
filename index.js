@@ -3,7 +3,7 @@ const app = express()
 app.use(express.json())
 
 
-let data = [
+let persons = [
   { 
     "id": 1,
     "name": "Arto Hellas", 
@@ -36,7 +36,7 @@ app.get('/',
 
 app.get('/info', (request, response)=>{
   console.log("Get Info");
-  const len = data.length
+  const len = persons.length
   const info = `Phonebook has info for ${len} people`
   const date = new Date()
   const resStr = `<div><p>${info}</p><p>${date}</p></div>`
@@ -47,9 +47,21 @@ app.get('/info', (request, response)=>{
 
 app.get('/api/persons', (request, response)=>{
   console.log("Get all persons");
-  response.send(data)
+  response.send(persons)
 })
 
+app.get('/api/persons/:id', (request, response)=>{
+  console.log("Get note");
+  const id = Number(request.params.id)
+  const person = persons.find( person => person.id === id )
+
+  if(person){
+    response.json(person)
+  }else{
+    response.statusMessage = "The person you're looking for, doesn't exists"
+    response.status(404).end()
+  }
+})
 
 const PORT = 3001
 app.listen(PORT,
