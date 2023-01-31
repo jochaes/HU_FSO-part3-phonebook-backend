@@ -7,8 +7,6 @@ const app = express()
 app.use(express.json())
 
 app.use(morgan(function (tokens, req, res) {
-  console.log("HOLAAAAA");
-  console.log(req.body);
   return [
     tokens.method(req, res),
     tokens.url(req, res),
@@ -46,7 +44,7 @@ let persons = [
 app.get('/', 
   (request, response)=>{
     console.log("get index");
-    response.send('<h1>Phonebook Backend</h1>')
+    response.send('<div><h1>Part 3: Phonebook Backend</h1><p><br>Made by @jochaes</p></div>')
   }
 )
 
@@ -118,9 +116,7 @@ app.post('/api/persons', (request, response)=>{
   response.json(newPerson)
 })
 
-const PORT = 3001
-app.listen(PORT,
-  () => {
-    console.log(`Server running on port ${PORT}`);
-  }  
-)
+const PORT = process.env.PORT || 3001
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`)
+})
