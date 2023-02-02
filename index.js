@@ -117,25 +117,27 @@ app.post('/api/persons', (request, response)=>{
     })
   }
 
-  if( persons.find( person => person.name === body.name ) ){
-    return response.status(400).json({
-      error: 'name must be unique'
-    })
-  }  
+  // if( persons.find( person => person.name === body.name ) ){
+  //   return response.status(400).json({
+  //     error: 'name must be unique'
+  //   })
+  // }  
 
-  const newPerson = {
-    "id": generateId(),
-    "name": body.name,
-    "number": body.number
-  }
+  const newPerson = new Person({
+     name: body.name,
+     number: body.number
+  })
 
-  persons = persons.concat(newPerson)
-  response.json(newPerson)
+  //Save Person to the DB
+  newPerson.save().then(
+    savedPerson => {
+      response.json(savedPerson)
+    }
+  )
 })
 
 
 app.use(unknownEndpoint)
-
 const PORT = process.env.PORT || 3001
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)

@@ -1,10 +1,10 @@
 //command to run this script 
 // node mongo.js <password>  => Returns Phonebook 
 // node mongo.js <password> <name> <phone number> => Insert a new person to phonebook
-
+require('dotenv').config()
 const mongoose = require('mongoose')
 
-//Check if password is present 
+
 let args = process.argv
 
 
@@ -16,8 +16,7 @@ const personSchema = new mongoose.Schema({
 const Person = mongoose.model('Person', personSchema)
 
 const connect = () =>{
-  const password = args[2]
-  const url = `mongodb+srv://fullstack:${password}@fsopart3.xpgsfdn.mongodb.net/phonebookapplication?retryWrites=true&w=majority`
+  const url = process.env.MONGODB_URI
   mongoose.set('strictQuery', false)
   mongoose.connect(url)
 }
@@ -61,7 +60,7 @@ if(args.length < 3){
   printPhonebook()
 }else if(args.length === 5){
   //console.log("New entry to phonebook");
-  savePerson(args[3], args[4])
+  savePerson(args[2], args[3])
 }else{
   console.log("Incorrect Arguments, try again.");
   process.exit(1)
