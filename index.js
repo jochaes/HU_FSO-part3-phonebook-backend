@@ -1,13 +1,16 @@
+require('dotenv').config()
 const express =  require('express') //The aplication imports Node's built in web server module
 const morgan = require('morgan')
 const cors = require('cors')
+const Person = require('./models/person')
 const app = express()
 
-
+//Application
 app.use(express.static('build'))
 app.use(cors())
-app.use(express.json())
 
+
+//Middleware
 app.use(morgan(function (tokens, req, res) {
   return [
     tokens.method(req, res),
@@ -18,6 +21,14 @@ app.use(morgan(function (tokens, req, res) {
     JSON.stringify(req.body)
   ].join(' ')
 }))
+
+//Middleware
+const unknownEndpoint = (request, response) => {
+  console.log("Unknown endpoint request");
+  response.status(404).send({ error: 'unknown endpoint' })
+}
+
+app.use(express.json())
 
 let persons = [
   { 
@@ -62,8 +73,12 @@ app.get('/info', (request, response)=>{
 })
 
 app.get('/api/persons', (request, response)=>{
-  console.log("Get all persons");
-  response.send(persons)
+
+  Person.find({}).then(
+    notes=>{
+      response.json(notes)
+    }
+  )
 })
 
 app.get('/api/persons/:id', (request, response)=>{
@@ -117,6 +132,9 @@ app.post('/api/persons', (request, response)=>{
   persons = persons.concat(newPerson)
   response.json(newPerson)
 })
+
+
+app.use(unknownEndpoint)
 
 const PORT = process.env.PORT || 3001
 app.listen(PORT, () => {
