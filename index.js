@@ -52,16 +52,18 @@ app.get('/api/persons', (request, response, next)=>{
 })
 
 app.get('/api/persons/:id', (request, response, next )=>{
-  console.log("Get note");
-  const id = Number(request.params.id)
-  const person = persons.find( person => person.id === id )
 
-  if(person){
-    response.json(person)
-  }else{
-    response.statusMessage = "The person you're looking for, doesn't exists"
-    response.status(404).end()
-  }
+
+  Person.findById(request.params.id)
+    .then(person => {
+      if(person){
+        response.json(person)  
+      }else{
+        response.status(404).end()
+      }
+    })
+    .catch(error => next(error))
+
 })
 
 app.delete('/api/persons/:id', (request, response, next)=>{
