@@ -7,6 +7,7 @@ const app = express()
 
 //Application
 app.use(express.static('build'))
+app.use(express.json())
 app.use(cors())
 
 
@@ -22,23 +23,15 @@ app.use(morgan(function (tokens, req, res) {
   ].join(' ')
 }))
 
-//Middleware
-const unknownEndpoint = (request, response) => {
-  console.log("Unknown endpoint request");
-  response.status(404).send({ error: 'unknown endpoint' })
-}
-
-app.use(express.json())
-
 
 app.get('/', 
-  (request, response)=>{
+  (request, response, next)=>{
     console.log("get index");
     response.send('<div><h1>Part 3: Phonebook Backend</h1><p><br>Made by @jochaes</p></div>')
   }
 )
 
-app.get('/info', (request, response)=>{
+app.get('/info', (request, response, next )=>{
   console.log("Get Info");
   const len = persons.length
   const info = `Phonebook has info for ${len} people`
@@ -49,16 +42,16 @@ app.get('/info', (request, response)=>{
   
 })
 
-app.get('/api/persons', (request, response)=>{
+app.get('/api/persons', (request, response, next)=>{
 
   Person.find({}).then(
     notes=>{
       response.json(notes)
     }
-  )
+  ).catch( error => next(error))
 })
 
-app.get('/api/persons/:id', (request, response)=>{
+app.get('/api/persons/:id', (request, response, next )=>{
   console.log("Get note");
   const id = Number(request.params.id)
   const person = persons.find( person => person.id === id )
@@ -71,36 +64,47 @@ app.get('/api/persons/:id', (request, response)=>{
   }
 })
 
-app.delete('/api/persons/:id', (request, response)=>{
+app.delete('/api/persons/:id', (request, response, next)=>{
 
   Person.findByIdAndRemove( request.params.id)
     .then( result => {
       response.status(204).end()
     })
-    .catch(error => {
-      console.log(error.message);
-    })
+    .catch(error => next(error))
 })
 
-const generateId = () => {
-  return Math.floor(Math.random() * 1000000);
-}
 
-app.post('/api/persons', (request, response)=>{
+app.put('/api/persons/:id', (request, response, next) => {
+
+  const body  = request.body;
+  if(!body.number || !body.name){
+    const err =  new Error("content missing")
+    err.name = "ContentMissing"
+    return next(err)
+  }
+
+  const person = {
+    name: body.name,
+    number: body.number
+  }
+
+  Person.findByIdAndUpdate(request.params.id, person, {new:true} )
+    .then(updatedPerson => {
+      response.json(updatedPerson)
+    })
+    .catch(error => next(error))
+
+} )
+
+app.post('/api/persons', (request, response, next)=>{
 
   const body = request.body 
 
   if(!body.number || !body.name){
-    return response.status(400).json({
-      error: 'content missing'
-    })
+    const err =  new Error("content missing")
+    err.name = "ContentMissing"
+    return next(err)
   }
-
-  // if( persons.find( person => person.name === body.name ) ){
-  //   return response.status(400).json({
-  //     error: 'name must be unique'
-  //   })
-  // }  
 
   const newPerson = new Person({
      name: body.name,
@@ -108,15 +112,40 @@ app.post('/api/persons', (request, response)=>{
   })
 
   //Save Person to the DB
-  newPerson.save().then(
-    savedPerson => {
-      response.json(savedPerson)
-    }
-  )
+  newPerson.save()
+    .then(
+      savedPerson => {
+        response.json(savedPerson)
+    })
+    .catch( error => next(error))
 })
 
 
+
+//Middleware
+const unknownEndpoint = (request, response) => {
+  console.log("Unknown endpoint request");
+  response.status(404).send({ error: 'unknown endpoint' })
+}
 app.use(unknownEndpoint)
+
+
+const errorHandler = (error, request, response, next) => {
+  console.log(error.message)
+
+  if(error.name = 'ContentMissing'){
+    return response.status(400).send({error: 'content missing'}) 
+  }
+
+  if(error.name = 'CastError'){
+    return response.status(400).send({error: 'malformatted id'})
+  }
+
+  next(error)
+}
+
+
+app.use(errorHandler)
 const PORT = process.env.PORT || 3001
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
